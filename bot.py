@@ -49,7 +49,7 @@ async def on_message(message):
     if count > 0:
         user_id = message.author.id
         word_counts[user_id] = word_counts.get(user_id, 0) + count
-        print(f"{message.author} said {count} n-words: {word_counts[user_id]}")
+        print(f"{message.author} said {count} tracked words, total: {word_counts[user_id]}")
 
     await bot.process_commands(message)
 
@@ -58,8 +58,8 @@ async def on_message(message):
 async def count(ctx):
     total = word_counts.get(ctx.author.id, 0)
     embed = discord.Embed(
-        title=f"{ctx.author.display_name}'s Nigga count",
-        description=f"**{ctx.author.display_name}** has said the n-word {total} times!",
+        title=f"{ctx.author.display_name}'s N-Word count",
+        description=f"**{ctx.author.display_name}** has said the N-Word {total} times!",
         color=discord.Color.red()
     )
     await ctx.send(embed=embed)
@@ -71,32 +71,29 @@ async def top(ctx):
         await ctx.send("No tracked words have been said yet!")
         return
 
+    # prevent duplicate command runs
+    if getattr(bot, "_processing_top", False):
+        return
+    bot._processing_top = True
+
     sorted_users = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
     description = ""
     for i, (user_id, count) in enumerate(sorted_users[:10], start=1):
         try:
             user = await bot.fetch_user(user_id)
-            description += f"**{i}. {user.display_name}** — {count}\n"
+            description += f"**{i}. {user.display_name}** said {count} N-Words\n"
         except:
-            description += f"**{i}. Unknown User** — {count}\n"
+            description += f"**{i}. Unknown User** said {count} N-Words\n"
 
     embed = discord.Embed(
-        title="🏆 Top 10 users for N-Words:",
+        title="🏆 Top 10 users for N-Words",
         description=description,
         color=discord.Color.red()
     )
     await ctx.send(embed=embed)
+    bot._processing_top = False
 
 # Run bot
 bot.run(os.getenv("TOKEN"))
-
-
-
-
-
-
-
-
-
 
 
