@@ -2,7 +2,23 @@ import os
 import discord
 from discord.ext import commands
 import string
+from flask import Flask
+from threading import Thread
 
+# --- Flask server to keep bot alive ---
+app = Flask("")
+
+@app.route("/")
+def home():
+    return "Bot is alive!"
+
+def run():
+    app.run(host="0.0.0.0", port=8080)
+
+t = Thread(target=run)
+t.start()
+
+# --- Discord bot setup ---
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
@@ -33,7 +49,7 @@ async def on_message(message):
     if count > 0:
         user_id = message.author.id
         word_counts[user_id] = word_counts.get(user_id, 0) + count
-        print(f"{message.author} said {count} tracked words, total: {word_counts[user_id]}")
+        print(f"{message.author} said {count} n-words: {word_counts[user_id]}")
 
     await bot.process_commands(message)
 
@@ -71,7 +87,10 @@ async def top(ctx):
     )
     await ctx.send(embed=embed)
 
+# Run bot
 bot.run(os.getenv("TOKEN"))
+
+
 
 
 
