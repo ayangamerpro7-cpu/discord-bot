@@ -1,36 +1,21 @@
-# bot.py for PythonAnywhere
-
+import os
 import discord
 from discord.ext import commands
-import os
 import string
-from flask import Flask
-import threading
 
-# --- Web server to keep bot alive (optional for ping) ---
-app = Flask('')
-
-@app.route('/')
-def home():
-    return "Bot is running!"
-
-def run_web():
-    app.run(host='0.0.0.0', port=8080)
-
-threading.Thread(target=run_web).start()
-
-# --- Discord bot setup ---
 intents = discord.Intents.default()
+intents.messages = True
 intents.message_content = True
+intents.guilds = True
+
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Words to track
+# Words to track (case-insensitive)
 TRACKED_WORDS = ["nigga", "nigger", "niggers"]
 
 # Dictionary to store counts per user
 word_counts = {}
 
-# --- Events ---
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
@@ -48,44 +33,48 @@ async def on_message(message):
     if count > 0:
         user_id = message.author.id
         word_counts[user_id] = word_counts.get(user_id, 0) + count
-        print(f"{message.author} said {count} words, total: {word_counts[user_id]}")
+        print(f"{message.author} said {count} tracked words, total: {word_counts[user_id]}")
 
     await bot.process_commands(message)
 
-# --- Commands ---
+# Command to check your own count
 @bot.command()
-async def count(ctx, member: discord.Member = None):
-    member = member or ctx.author
-    total = word_counts.get(member.id, 0)
+async def count(ctx):
+    total = word_counts.get(ctx.author.id, 0)
     embed = discord.Embed(
-        title=f"{member.display_name}'s N-Words ",
-        description=f"**{member.display_name}** has said the Nigga {total} times!",
+        title=f"{ctx.author.display_name}'s Nigga count",
+        description=f"**{ctx.author.display_name}** has said the tracked words {total} times!",
         color=discord.Color.red()
     )
     await ctx.send(embed=embed)
 
+# Command to show top 10 leaderboard
 @bot.command()
 async def top(ctx):
     if not word_counts:
-        await ctx.send("No words have been tracked yet!")
+        await ctx.send("No tracked words have been said yet!")
         return
-    sorted_users = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+
+    sorted_users = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
     description = ""
-    for i, (user_id, count) in enumerate(sorted_users, start=1):
+    for i, (user_id, count) in enumerate(sorted_users[:10], start=1):
         try:
             user = await bot.fetch_user(user_id)
-            description += f"**{i}. {user.display_name}: {count}**\n"
+            description += f"**{i}. {user.display_name}** — {count}\n"
         except:
-            description += f"**{i}. Unknown User: {count}**\n"
+            description += f"**{i}. Unknown User** — {count}\n"
+
     embed = discord.Embed(
-        title="Nigga leaderboard - Top 10 Users:",
+        title="🏆 Top 10 users for N-Words:",
         description=description,
         color=discord.Color.red()
     )
     await ctx.send(embed=embed)
 
-# --- Run bot using environment variable ---
-bot.run(os.environ["TOKEN"])
+bot.run(os.getenv("TOKEN"))
+
+
+
 
 
 
