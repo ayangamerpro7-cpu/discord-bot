@@ -4,6 +4,7 @@ from discord.ext import commands
 import string
 from flask import Flask
 from threading import Thread
+import json
 
 # --- Flask server to keep bot alive ---
 app = Flask("")
@@ -32,6 +33,24 @@ TRACKED_WORDS = ["nigga", "nigger", "niggers"]
 # Dictionary to store counts per user
 word_counts = {}
 
+# File to save data
+DATA_FILE = "word_counts.json"
+
+# Load data if file exists
+if os.path.exists(DATA_FILE):
+    with open(DATA_FILE, "r") as f:
+        try:
+            word_counts = json.load(f)
+            # JSON keys are strings, convert to int
+            word_counts = {int(k): v for k, v in word_counts.items()}
+        except:
+            word_counts = {}
+
+# Save function
+def save_counts():
+    with open(DATA_FILE, "w") as f:
+        json.dump(word_counts, f)
+
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
@@ -49,7 +68,8 @@ async def on_message(message):
     if count > 0:
         user_id = message.author.id
         word_counts[user_id] = word_counts.get(user_id, 0) + count
-        print(f"{message.author} said {count} tracked words, total: {word_counts[user_id]}")
+        save_counts()  # save after each update
+        print(f"{message.author} said {count} n-words, total: {word_counts[user_id]}")
 
     await bot.process_commands(message)
 
@@ -71,7 +91,6 @@ async def top(ctx):
         await ctx.send("No tracked words have been said yet!")
         return
 
-    # prevent duplicate command runs
     if getattr(bot, "_processing_top", False):
         return
     bot._processing_top = True
@@ -95,5 +114,7 @@ async def top(ctx):
 
 # Run bot
 bot.run(os.getenv("TOKEN"))
+
+
 
 
