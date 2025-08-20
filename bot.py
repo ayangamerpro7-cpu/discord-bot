@@ -43,7 +43,7 @@ async def count(ctx):
     total = word_counts.get(ctx.author.id, 0)
     embed = discord.Embed(
         title=f"{ctx.author.display_name}'s Nigga count",
-        description=f"**{ctx.author.display_name}** has said the tracked words {total} times!",
+        description=f"**{ctx.author.display_name}** has said the n-word {total} times!",
         color=discord.Color.red()
     )
     await ctx.send(embed=embed)
@@ -72,6 +72,7 @@ async def top(ctx):
     await ctx.send(embed=embed)
 
 bot.run(os.getenv("TOKEN"))
+
 
 
 
