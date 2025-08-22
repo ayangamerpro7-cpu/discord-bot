@@ -87,5 +87,6 @@ async def top(ctx):
     await ctx.send(embed=embed)
 
 # Run bot
-bot.run(os.getenv("TOKEN")
+bot.run(os.getenv("TOKEN"))
         
+
