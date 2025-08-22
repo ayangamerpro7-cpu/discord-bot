@@ -1,6 +1,6 @@
 import os
-import discord
-from discord.ext import commands
+import nextcord as discord
+from nextcord.ext import commands
 import string
 from flask import Flask
 from threading import Thread
@@ -89,4 +89,5 @@ async def top(ctx):
 # Run bot
 bot.run(os.getenv("TOKEN"))
         
+
 
