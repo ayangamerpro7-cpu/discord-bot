@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 import string
 
+# Intents for text messages only
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
@@ -13,7 +14,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Words to track (case-insensitive)
 TRACKED_WORDS = ["nigga", "nigger", "niggers"]
 
-# Dictionary to store counts per user
+# Dictionary to store counts per user (in-memory)
 word_counts = {}
 
 @bot.event
@@ -25,15 +26,17 @@ async def on_message(message):
     if message.author.bot:
         return
 
+    # Normalize text
     content = message.content.lower()
     content = content.translate(str.maketrans('', '', string.punctuation))
 
+    # Count occurrences of tracked words
     count = sum(content.split().count(word) for word in TRACKED_WORDS)
 
     if count > 0:
         user_id = message.author.id
         word_counts[user_id] = word_counts.get(user_id, 0) + count
-        print(f"{message.author} said {count} N-words, total: {word_counts[user_id]}")
+        print(f"{message.author} said {count} tracked words, total: {word_counts[user_id]}")
 
     await bot.process_commands(message)
 
@@ -71,7 +74,10 @@ async def top(ctx):
     )
     await ctx.send(embed=embed)
 
+# Run the bot using token from environment variables
 bot.run(os.getenv("TOKEN"))
+
+
 
 
 
