@@ -1,2 +1,4 @@
-discord.py
-flask
+discord.py>=2.4.0
+motor>=3.3.0
+dnspython>=2.6.1
+flask>=3.0.0
