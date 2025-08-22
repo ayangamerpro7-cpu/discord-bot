@@ -3,7 +3,19 @@ import discord
 from discord.ext import commands
 import string
 import json
+from flask import Flask
 
+# ---------- Flask web server to keep bot alive ----------
+app = Flask("")
+
+@app.route("/")
+def home():
+    return "Bot is alive!"
+
+def run():
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
+# ---------- Discord bot ----------
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
@@ -14,19 +26,15 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Words to track (case-insensitive)
 TRACKED_WORDS = ["nigga", "nigger", "niggers"]
 
-# File to save counts
-DATA_FILE = "word_counts.json"
-
-# Load counts from file if it exists
-if os.path.exists(DATA_FILE):
-    with open(DATA_FILE, "r") as f:
+# Load word counts from JSON file
+if os.path.exists("word_counts.json"):
+    with open("word_counts.json", "r") as f:
         word_counts = json.load(f)
 else:
     word_counts = {}
 
-# Save counts to file
 def save_counts():
-    with open(DATA_FILE, "w") as f:
+    with open("word_counts.json", "w") as f:
         json.dump(word_counts, f)
 
 @bot.event
@@ -46,8 +54,8 @@ async def on_message(message):
     if count > 0:
         user_id = str(message.author.id)
         word_counts[user_id] = word_counts.get(user_id, 0) + count
-        print(f"{message.author} said {count} tracked words, total: {word_counts[user_id]}")
         save_counts()
+        print(f"{message.author} said {count} tracked words, total: {word_counts[user_id]}")
 
     await bot.process_commands(message)
 
@@ -56,8 +64,8 @@ async def on_message(message):
 async def count(ctx):
     total = word_counts.get(str(ctx.author.id), 0)
     embed = discord.Embed(
-        title=f"{ctx.author.display_name}'s N-word count",
-        description=f"**{ctx.author.display_name}** has said the N-word {total} times!",
+        title=f"{ctx.author.display_name}'s N-Word Count",
+        description=f"**{ctx.author.display_name}** has said the n-word {total} times!",
         color=discord.Color.red()
     )
     await ctx.send(embed=embed)
@@ -79,12 +87,17 @@ async def top(ctx):
             description += f"**{i}. Unknown User** — {count}\n"
 
     embed = discord.Embed(
-        title="🏆 Top 10 users for N-Word count:",
+        title="🏆 Top 10 users for N-Words:",
         description=description,
         color=discord.Color.yellow()
     )
     await ctx.send(embed=embed)
 
-# Run the bot
-bot.run(os.getenv("TOKEN"))
+# ---------- Run both Flask and Discord ----------
+if __name__ == "__main__":
+    from threading import Thread
+    Thread(target=run).start()
+    bot.run(os.getenv("TOKEN"))
+
+
 
