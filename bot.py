@@ -26,11 +26,9 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # Normalize text
     content = message.content.lower()
     content = content.translate(str.maketrans('', '', string.punctuation))
 
-    # Count occurrences of tracked words
     count = sum(content.split().count(word) for word in TRACKED_WORDS)
 
     if count > 0:
@@ -76,6 +74,8 @@ async def top(ctx):
 
 # Run the bot using token from environment variables
 bot.run(os.getenv("TOKEN"))
+
+
 
 
 
